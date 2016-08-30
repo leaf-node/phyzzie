@@ -140,6 +140,8 @@ makeWorldEditor = function (world) {
             ConstraintConstructor = p2.DistanceConstraint;
         } else if (constraintDescription.type === "prismatic") {
             ConstraintConstructor = p2.PrismaticConstraint;
+        } else if (constraintDescription.type === "lock") {
+            ConstraintConstructor = p2.LockConstraint;
         } else {
             console.assert(false, "error, unsupported constraint type: " + constraintDescription.type);
         }
