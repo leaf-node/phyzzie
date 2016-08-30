@@ -171,10 +171,6 @@ makeWorldEditor = function (world) {
     };
 
     that = {};
-    that.addMaterial = addMaterial;
-    that.addContactMaterial = addContactMaterial;
-    that.addThing = addThing;
-    that.createConstraint = createConstraint;
     that.addThingsToWorld = addThingsToWorld;
     that.getEncapsulatedThingsByName = getEncapsulatedThingsByName;
 
