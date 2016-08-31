@@ -177,7 +177,7 @@ makeWorldEditor = function (simOptions) {
 
     // returns encapsulated world
     getEncapsulatedWorld = function () {
-        return worldEncapsulator(world, simOptions.simStepsPerSecond);
+        return worldEncapsulator(world, simOptions);
     };
 
     that = {};
@@ -189,16 +189,30 @@ makeWorldEditor = function (simOptions) {
 };
 
 // protects the world object from change
-worldEncapsulator = function (world, simStepsPerSecond) {
+worldEncapsulator = function (world, simOptions) {
 
     "use strict";
 
-    var that, step, prevTime;
+    var that, step, newTicks, prevTime,
+        simStepsPerSecond, simStepsPerInteraction,
+        maxStepMilliseconds, interactionsPerSecond,
+        ticksUntilInteract;
 
-    step = function (currentTime, maxStepMilliseconds) {
+    interactionsPerSecond   = simOptions.interactionsPerSecond;
+    simStepsPerInteraction  = simOptions.simStepsPerInteraction;
+    maxStepMilliseconds     = simOptions.maxStepMilliseconds;
 
-        var i, timeDiff, ticks;
 
+    simStepsPerSecond = simStepsPerInteraction * interactionsPerSecond;
+
+    newTicks = 0;
+    ticksUntilInteract = 0;
+
+    step = function (currentTime, interact) {
+
+        var timeDiff;
+
+        // first call to .step()
         if (prevTime === undefined) {
             prevTime = currentTime;
             return;
@@ -206,16 +220,26 @@ worldEncapsulator = function (world, simStepsPerSecond) {
 
         timeDiff = currentTime - prevTime;
 
-        console.assert(timeDiff > 0, "worldPlatform error: backwards time travel not allowed.");
+        console.assert(timeDiff > 0, "phyzzie error: reverse time travel not allowed.");
 
         if (timeDiff > maxStepMilliseconds) {
             timeDiff = maxStepMilliseconds;
         }
 
-        ticks = timeDiff / 1000 * simStepsPerSecond;
+        newTicks += timeDiff / 1000 * simStepsPerSecond;
 
-        for (i = 0; i < ticks; i += 1) {
+        while (Math.floor(newTicks) > 0) {
+
+            if (ticksUntilInteract === 0) {
+                interact(1 / interactionsPerSecond);
+
+                ticksUntilInteract += simStepsPerInteraction;
+            }
+
             world.step(1 / simStepsPerSecond);
+
+            newTicks -= 1;
+            ticksUntilInteract -= 1;
         }
 
         prevTime = currentTime;
@@ -250,6 +274,10 @@ thingEncapsulator = function (thing) {
     };
     pushRelative = function (x, y) {
         var forceVector;
+
+        console.assert(typeof x === "number" && !isNaN(x), "phyzzie: " + x + " is not a valid coordinate.");
+        console.assert(typeof y === "number" && !isNaN(y), "phyzzie: " + y + " is not a valid coordinate.");
+
         forceVector = p2.vec2.set(p2.vec2.create(), x, y);
 
         body.applyImpulseLocal(forceVector);
