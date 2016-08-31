@@ -24,41 +24,44 @@ util = require('./lib/util.js');
 
 // creates an encapsulated physical simulation based on json world description
 // simStepsPerSecond: simulation steps per second
-makeWorld = function (worldDescriptionJSON, simStepsPerSecond) {
+makeWorld = function (worldDescriptionJSON, simOptions) {
 
     "use strict";
 
-    var that, relaxation, world, worldEditor,
-        encapsulatedWorld, encapsulatedThings;
+    var that, worldEditor, world, things;
 
-    // https://github.com/schteppe/p2.js/issues/203
-    relaxation = simStepsPerSecond / 15;
-    p2.Equation.DEFAULT_RELAXATION = relaxation;
 
-    world = new p2.World();
+    worldEditor = makeWorldEditor(util.copy(simOptions));
 
-    worldEditor = makeWorldEditor(world);
     worldEditor.addThingsToWorld(worldDescriptionJSON);
 
-    encapsulatedWorld = worldEncapsulator(world, simStepsPerSecond);
-    encapsulatedThings = worldEditor.getEncapsulatedThingsByName();
+    world = worldEditor.getEncapsulatedWorld();
+    things = worldEditor.getEncapsulatedThingsByName();
 
 
     that = {};
-    that.step = encapsulatedWorld.step;
-    that.getThings = function () { return encapsulatedThings; };
+    that.step = world.step;
+    that.getThings = function () { return things; };
 
     return that;
 };
 
 // adds things to world accoring to JSON things description
-makeWorldEditor = function (world) {
+makeWorldEditor = function (simOptions) {
 
     "use strict";
 
     var that, thingsByName, encapsulatedThingsByName, materials,
         addMaterial, addContactMaterial, addThing, createConstraint,
-        addThingsToWorld, getEncapsulatedThingsByName;
+        addThingsToWorld, getEncapsulatedThingsByName,
+        world, relaxation, getEncapsulatedWorld;
+
+    // https://github.com/schteppe/p2.js/issues/203
+    relaxation = simOptions.simStepsPerInteraction * simOptions.interactionsPerSecond / 15;
+    p2.Equation.DEFAULT_RELAXATION = relaxation;
+
+    world = new p2.World();
+
 
     materials = {};
     thingsByName = {};
@@ -172,8 +175,14 @@ makeWorldEditor = function (world) {
         return encapsulatedThingsByName;
     };
 
+    // returns encapsulated world
+    getEncapsulatedWorld = function () {
+        return worldEncapsulator(world, simOptions.simStepsPerSecond);
+    };
+
     that = {};
     that.addThingsToWorld = addThingsToWorld;
+    that.getEncapsulatedWorld = getEncapsulatedWorld;
     that.getEncapsulatedThingsByName = getEncapsulatedThingsByName;
 
     return that;
