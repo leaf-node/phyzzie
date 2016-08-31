@@ -184,26 +184,32 @@ worldEncapsulator = function (world, simStepsPerSecond) {
 
     "use strict";
 
-    var that, step,
-        prevElapsedTime, doneTicks;
+    var that, step, prevTime;
 
-    prevElapsedTime = 0;
-    doneTicks = 0;
+    step = function (currentTime, maxStepMilliseconds) {
 
-    step = function (elapsedTime) {
+        var i, timeDiff, ticks;
 
-        var i, newTicks;
+        if (prevTime === undefined) {
+            prevTime = currentTime;
+            return;
+        }
 
-        console.assert(prevElapsedTime < elapsedTime, "worldPlatform error: backwards time travel not allowed.");
+        timeDiff = currentTime - prevTime;
 
-        newTicks = Math.abs(elapsedTime * (simStepsPerSecond / 1000) - doneTicks);
+        console.assert(timeDiff > 0, "worldPlatform error: backwards time travel not allowed.");
 
-        for (i = 0; i < newTicks; i += 1) {
+        if (timeDiff > maxStepMilliseconds) {
+            timeDiff = maxStepMilliseconds;
+        }
+
+        ticks = timeDiff / 1000 * simStepsPerSecond;
+
+        for (i = 0; i < ticks; i += 1) {
             world.step(1 / simStepsPerSecond);
         }
 
-        doneTicks += newTicks;
-        prevElapsedTime = elapsedTime;
+        prevTime = currentTime;
     };
 
     that = {};
