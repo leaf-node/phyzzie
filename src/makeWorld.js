@@ -210,12 +210,12 @@ worldEncapsulator = function (world, simOptions) {
 
     step = function (currentTime, interact) {
 
-        var timeDiff;
+        var timeDiff, continueSim;
 
         // first call to .step()
         if (prevTime === undefined) {
             prevTime = currentTime;
-            return;
+            return true;
         }
 
         timeDiff = currentTime - prevTime;
@@ -231,7 +231,14 @@ worldEncapsulator = function (world, simOptions) {
         while (Math.floor(newTicks) > 0) {
 
             if (ticksUntilInteract === 0) {
-                interact(1 / interactionsPerSecond);
+                continueSim = interact(1 / interactionsPerSecond);
+
+                console.assert(continueSim === true || continueSim === false,
+                        "phyzzie: interaction callback must return true or false. This determines whether to continue the simulation.");
+
+                if (continueSim === false) {
+                    return false;
+                }
 
                 ticksUntilInteract += simStepsPerInteraction;
             }
@@ -243,6 +250,8 @@ worldEncapsulator = function (world, simOptions) {
         }
 
         prevTime = currentTime;
+
+        return true;
     };
 
     that = {};
