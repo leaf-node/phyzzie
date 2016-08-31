@@ -220,7 +220,7 @@ worldEncapsulator = function (world, simOptions) {
 
         timeDiff = currentTime - prevTime;
 
-        console.assert(timeDiff > 0, "phyzzie error: reverse time travel not allowed.");
+        console.assert(timeDiff >= 0, "phyzzie error: reverse time travel not allowed.");
 
         if (timeDiff > maxStepMilliseconds) {
             timeDiff = maxStepMilliseconds;
