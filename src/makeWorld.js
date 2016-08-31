@@ -272,11 +272,16 @@ thingEncapsulator = function (thing) {
     getShapes = function () {
         return util.copy(shapes);
     };
-    pushRelative = function (x, y) {
-        var forceVector;
+    pushRelative = function (coordinates) {
+        var forceVector, x, y;
 
-        console.assert(typeof x === "number" && !isNaN(x), "phyzzie: " + x + " is not a valid coordinate.");
-        console.assert(typeof y === "number" && !isNaN(y), "phyzzie: " + y + " is not a valid coordinate.");
+        console.assert(Array.isArray(coordinates), "phyzzie: " + coordinates + " is not a valid coordinate array.");
+
+        x = coordinates[0];
+        y = coordinates[1];
+
+        console.assert(typeof x === "number" && !isNaN(x), "phyzzie: " + coordinates + " is not a valid coordinate array.");
+        console.assert(typeof y === "number" && !isNaN(y), "phyzzie: " + coordinates + " is not a valid coordinate array.");
 
         forceVector = p2.vec2.set(p2.vec2.create(), x, y);
 
