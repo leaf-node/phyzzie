@@ -28,22 +28,13 @@ makeWorld = function (worldDescriptionJSON, simOptions) {
 
     "use strict";
 
-    var that, worldEditor, world, things;
-
+    var worldEditor;
 
     worldEditor = makeWorldEditor(util.copy(simOptions));
 
     worldEditor.addThingsToWorld(worldDescriptionJSON);
 
-    world = worldEditor.getEncapsulatedWorld();
-    things = worldEditor.getEncapsulatedThingsByName();
-
-
-    that = {};
-    that.step = world.step;
-    that.getThings = function () { return things; };
-
-    return that;
+    return worldEditor.getEncapsulatedWorld();
 };
 
 // adds things to world accoring to JSON things description
@@ -53,8 +44,7 @@ makeWorldEditor = function (simOptions) {
 
     var that, thingsByName, encapsulatedThingsByName, materials,
         addMaterial, addContactMaterial, addThing, createConstraint,
-        addThingsToWorld, getEncapsulatedThingsByName,
-        world, relaxation, getEncapsulatedWorld;
+        addThingsToWorld, world, relaxation, getEncapsulatedWorld;
 
     // https://github.com/schteppe/p2.js/issues/203
     relaxation = simOptions.simStepsPerInteraction * simOptions.interactionsPerSecond / 15;
@@ -170,30 +160,24 @@ makeWorldEditor = function (simOptions) {
         worldDescription.constraints.forEach(createConstraint);
     };
 
-    // returns encapsulated things by name
-    getEncapsulatedThingsByName = function () {
-        return encapsulatedThingsByName;
-    };
-
     // returns encapsulated world
     getEncapsulatedWorld = function () {
-        return worldEncapsulator(world, simOptions);
+        return worldEncapsulator(world, encapsulatedThingsByName, simOptions);
     };
 
     that = {};
     that.addThingsToWorld = addThingsToWorld;
     that.getEncapsulatedWorld = getEncapsulatedWorld;
-    that.getEncapsulatedThingsByName = getEncapsulatedThingsByName;
 
     return that;
 };
 
 // protects the world object from change
-worldEncapsulator = function (world, simOptions) {
+worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
 
     "use strict";
 
-    var that, step, newTicks, prevTime,
+    var that, step, getThings, newTicks, prevTime,
         simStepsPerSecond, simStepsPerInteraction,
         maxStepMilliseconds, interactionsPerSecond,
         ticksUntilInteract;
@@ -254,8 +238,24 @@ worldEncapsulator = function (world, simOptions) {
         return true;
     };
 
+    // makes copy of things array
+    // removing encapsulated things from copied array will not affect original array
+    getThings = function () {
+
+        var encapsulatedThingsByNameCopy;
+
+        encapsulatedThingsByNameCopy = {};
+
+        Object.keys(encapsulatedThingsByName).forEach(function (thingName) {
+            encapsulatedThingsByNameCopy[thingName] = encapsulatedThingsByName[thingName];
+        });
+
+        return encapsulatedThingsByNameCopy;
+    };
+
     that = {};
     that.step = step;
+    that.getThings = getThings;
 
     return that;
 };
