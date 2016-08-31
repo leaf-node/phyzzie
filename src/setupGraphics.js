@@ -16,6 +16,10 @@
 var setupGraphics, makeThingGraphics, getColors,
     $, PIXI;
 
+console.assert(require('is-in-browser').default === true,
+        "phyzzie: setupGraphics function can only be used in the browser.");
+
+
 PIXI = require('pixi.js');
 $ = require('jquery');
 
