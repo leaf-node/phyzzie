@@ -227,6 +227,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
                 ticksUntilInteract += simStepsPerInteraction;
             }
 
+            // the p2.js function, not this function being defined
             world.step(1 / simStepsPerSecond);
 
             newTicks -= 1;
