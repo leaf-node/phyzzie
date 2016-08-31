@@ -152,15 +152,15 @@ getColors = function (thingColors, shapeIndex) {
 
         if (thingColors.defaults !== undefined) {
 
-            lineColor = thingColors.defaults.line;
-            fillColor = thingColors.defaults.fill;
+            lineColor = parseInt(thingColors.defaults.line, 16);
+            fillColor = parseInt(thingColors.defaults.fill, 16);
         }
 
         if (thingColors.perShape !== undefined
                 && thingColors.perShape[shapeIndex] !== undefined) {
 
-            lineColor = thingColors.perShape[shapeIndex].line;
-            fillColor = thingColors.perShape[shapeIndex].fill;
+            lineColor = parseInt(thingColors.perShape[shapeIndex].line, 16);
+            fillColor = parseInt(thingColors.perShape[shapeIndex].fill, 16);
         }
     }
 
