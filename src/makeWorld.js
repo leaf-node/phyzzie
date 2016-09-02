@@ -13,12 +13,12 @@
 // limitations under the License.
 
 
-var p2, util, worldInit,
+var Box2D, util, worldInit,
     worldEncapsulator, thingEncapsulator, multiStepWorld,
     makeWorldEditor, addThingsToWorld, makeWorld;
 
 // 2d physics simulator
-p2 = require('p2');
+Box2D = require('./lib/Box2D-node.js');
 util = require('./lib/util.js');
 
 
@@ -42,109 +42,98 @@ makeWorldEditor = function (simOptions) {
 
     "use strict";
 
-    var that, thingsByName, encapsulatedThingsByName, materials,
-        addMaterial, addContactMaterial, addThing, createConstraint,
-        addThingsToWorld, world, relaxation, getEncapsulatedWorld;
+    var that, thingsByName, encapsulatedThingsByName,
+        addThing, createJoint,
+        addThingsToWorld, world, enableSleep, getEncapsulatedWorld,
+        box2dSkinWidth, gravity;
 
-    // https://github.com/schteppe/p2.js/issues/203
-    relaxation = simOptions.simStepsPerInteraction * simOptions.interactionsPerSecond / 15;
-    p2.Equation.DEFAULT_RELAXATION = relaxation;
+    enableSleep = false;
+    box2dSkinWidth = 0.005;
 
-    world = new p2.World();
+    gravity = new Box2D.b2Vec2(0, -9.8);
+    world = new Box2D.b2World(gravity, enableSleep);
 
 
-    materials = {};
     thingsByName = {};
     encapsulatedThingsByName = {};
-
-    // creates materials
-    addMaterial = function (materialID) {
-
-        console.assert(typeof materialID === "number" && !isNaN(materialID) && materialID % 1 === 0 && materialID > 0,
-                "invalid material id (must be integer > 0): " + materialID);
-
-        materials[materialID] = new p2.Material(materialID);
-    };
-
-    // creates materials contacts
-    addContactMaterial = function (contactMaterialDescription) {
-
-        var contactMaterial;
-
-        console.assert(materials[contactMaterialDescription.materialA] !== undefined,
-                "invalid contact material ID: " + contactMaterialDescription.materialA);
-        console.assert(materials[contactMaterialDescription.materialB] !== undefined,
-                "invalid contact material ID: " + contactMaterialDescription.materialB);
-
-        contactMaterial = new p2.ContactMaterial(
-            materials[contactMaterialDescription.materialA],
-            materials[contactMaterialDescription.materialB],
-            contactMaterialDescription.options
-        );
-
-        world.addContactMaterial(contactMaterial);
-    };
 
     // create bodies and shapes
     addThing = function (thingDescription) {
 
-        var body;
+        var body, fixture, bodyObj, width, height, radius;
 
-        body = new p2.Body(thingDescription.bodyOptions);
+        body = new Box2D.b2BodyDef();
 
-        thingDescription.shapes.forEach(function (shapeDescription) {
+        if (thingDescription.options.body.isStatic === true) {
+            body.type = Box2D.b2Body.b2_staticBody;
+        } else {
+            body.type = Box2D.b2Body.b2_dynamicBody;
+        }
 
-            var shape, ShapeConstructor, offset, angle;
+        body.position.x = thingDescription.options.body.position[0];
+        body.position.y = thingDescription.options.body.position[1];
+        body.angle      = thingDescription.options.body.angle;
 
-            if (shapeDescription.type === "circle") {
-                ShapeConstructor = p2.Circle;
-            } else if (shapeDescription.type === "box") {
-                ShapeConstructor = p2.Box;
-            } else if (shapeDescription.type === "plane") {
-                ShapeConstructor = p2.Plane;
-            } else {
-                console.assert(false, "error: unsupported object shape: " + shapeDescription.type);
+        fixture = new Box2D.b2FixtureDef();
+        fixture.density = thingDescription.options.fixture.density;
+        fixture.friction = thingDescription.options.fixture.friction;
+        fixture.restitution = thingDescription.options.fixture.restitution;
+        fixture.filter.groupIndex = thingDescription.options.fixture.groupIndex;
+
+        if (fixture.density === undefined) {
+            fixture.density = 1.0;
+        }
+        if (fixture.friction === undefined) {
+            fixture.friction = 0.5;
+        }
+        if (fixture.restitution === undefined) {
+            fixture.restitution = 0.2;
+        }
+        if (fixture.filter.groupIndex === undefined) {
+            fixture.filter.groupIndex = 0;
+        }
+
+        if (thingDescription.options.shape.type === "circle") {
+            radius = thingDescription.options.shape.radius;
+            fixture.shape = new Box2D.b2CircleShape(radius);
+        } else if (thingDescription.options.shape.type === "box") {
+            width = thingDescription.options.shape.width;
+            height = thingDescription.options.shape.height;
+            if (thingDescription.options.shape.resize !== false) {
+                width -= 2 * box2dSkinWidth;
+                height -= 2 * box2dSkinWidth;
             }
+            fixture.shape = new Box2D.b2PolygonShape();
+            fixture.shape.SetAsBox(width / 2, height / 2);
+        } else {
+            console.assert(false, "error: unsupported object shape: " + thingDescription.options.shape.type);
+        }
 
-            shape = new ShapeConstructor(util.copy(shapeDescription.options));
+        bodyObj = world.CreateBody(body);
+        bodyObj.CreateFixture(fixture);
 
-            if (shapeDescription.materialID !== undefined) {
-                shape.material = materials[shapeDescription.materialID];
-            }
-
-            offset = (shapeDescription.offset !== undefined) ? util.copy(shapeDescription.offset) : [0, 0];
-            angle = (shapeDescription.angle !== undefined) ? shapeDescription.angle : 0;
-
-            body.addShape(shape, offset, angle);
-        });
-
-        world.addBody(body);
-
-        thingsByName[thingDescription.id] = [body, thingDescription.shapes];
+        thingsByName[thingDescription.id] = [bodyObj, thingDescription.options.shape];
         encapsulatedThingsByName[thingDescription.id] = thingEncapsulator(thingsByName[thingDescription.id]);
     };
 
-    // creates constraints
-    createConstraint = function (constraintDescription) {
+    // creates joints (constraints)
+    createJoint = function (jointDescription) {
 
-        var constraint, ConstraintConstructor, bodyA, bodyB;
+        var joint, bodyA, bodyB, anchorLocation;
 
-        if (constraintDescription.type === "distance") {
-            ConstraintConstructor = p2.DistanceConstraint;
-        } else if (constraintDescription.type === "prismatic") {
-            ConstraintConstructor = p2.PrismaticConstraint;
-        } else if (constraintDescription.type === "lock") {
-            ConstraintConstructor = p2.LockConstraint;
+        bodyA = thingsByName[jointDescription.bodyA][0];
+        bodyB = thingsByName[jointDescription.bodyB][0];
+
+        anchorLocation = new Box2D.b2Vec2(jointDescription.anchor[0], jointDescription.anchor[1]);
+
+        if (jointDescription.type === "revolute") {
+            joint = new Box2D.b2RevoluteJointDef();
+            joint.Initialize(bodyA, bodyB, anchorLocation);
         } else {
-            console.assert(false, "error, unsupported constraint type: " + constraintDescription.type);
+            console.assert(false, "error, unsupported constraint type: " + jointDescription.type);
         }
 
-        bodyA = thingsByName[constraintDescription.bodyA][0];
-        bodyB = thingsByName[constraintDescription.bodyB][0];
-
-        constraint = new ConstraintConstructor(bodyA, bodyB, constraintDescription.options);
-
-        world.addConstraint(constraint);
+        world.CreateJoint(joint);
     };
 
     // adds things to world accoring to world description
@@ -154,10 +143,8 @@ makeWorldEditor = function (simOptions) {
 
         worldDescription = JSON.parse(worldDescriptionJSON);
 
-        worldDescription.materials.forEach(addMaterial);
-        worldDescription.contactMaterials.forEach(addContactMaterial);
         worldDescription.things.forEach(addThing);
-        worldDescription.constraints.forEach(createConstraint);
+        worldDescription.joints.forEach(createJoint);
     };
 
     // returns encapsulated world
@@ -227,8 +214,8 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
                 ticksUntilInteract += simStepsPerInteraction;
             }
 
-            // the p2.js function, not this function being defined
-            world.step(1 / simStepsPerSecond);
+            // the Box2D function, not this function being defined
+            world.Step(1 / simStepsPerSecond, 10, 10);
 
             newTicks -= 1;
             ticksUntilInteract -= 1;
@@ -266,43 +253,43 @@ thingEncapsulator = function (thing) {
 
     "use strict";
 
-    var that, body, shapes,
-        getPosition, getAngle, getShapes,
-        pushRelative;
+    var that, body, shape,
+        getPosition, getAngle, getShape,
+        push;
 
     body = thing[0];
-    shapes = thing[1];
+    shape = thing[1];
 
     getPosition = function () {
-        return util.copy(body.position);
+        var position;
+        position = body.GetPosition();
+        return [position.x, position.y];
     };
     getAngle = function () {
-        return util.copy(body.angle % (Math.PI * 2));
+        return body.GetAngle();
     };
-    getShapes = function () {
-        return util.copy(shapes);
+    getShape = function () {
+        return util.copy(shape);
     };
-    pushRelative = function (coordinates) {
-        var forceVector, x, y;
+    push = function (impulse) {
+        var impulseVector, impulseLocation;
 
-        console.assert(Array.isArray(coordinates), "phyzzie: " + coordinates + " is not a valid coordinate array.");
+        console.assert(Array.isArray(impulse), "phyzzie: " + impulse + " is not a valid coordinate array.");
 
-        x = coordinates[0];
-        y = coordinates[1];
+        console.assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        console.assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: " + impulse + " is not a valid coordinate array.");
 
-        console.assert(typeof x === "number" && !isNaN(x), "phyzzie: " + coordinates + " is not a valid coordinate array.");
-        console.assert(typeof y === "number" && !isNaN(y), "phyzzie: " + coordinates + " is not a valid coordinate array.");
+        impulseVector = new Box2D.b2Vec2(impulse[0], impulse[1]);
+        impulseLocation = body.GetWorldPoint(new Box2D.b2Vec2(0, 0));
 
-        forceVector = p2.vec2.set(p2.vec2.create(), x, y);
-
-        body.applyImpulseLocal(forceVector);
+        body.ApplyImpulse(impulseVector, impulseLocation);
     };
 
     that = {};
     that.getPosition = getPosition;
     that.getAngle = getAngle;
-    that.getShapes = getShapes;
-    that.pushRelative = pushRelative;
+    that.getShape = getShape;
+    that.push = push;
 
     return that;
 };

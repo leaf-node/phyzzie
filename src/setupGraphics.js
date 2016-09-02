@@ -69,7 +69,7 @@ setupGraphics = function (things, unparsedColors, options) {
 
         thing = things[thingName];
 
-        thing.graphics = makeThingGraphics(thing.getShapes(), colors[thingName], scale, lineWidth);
+        thing.graphics = makeThingGraphics(thing.getShape(), colors[thingName], scale, lineWidth);
         graphics.addChild(thing.graphics);
     });
 
@@ -92,68 +92,47 @@ setupGraphics = function (things, unparsedColors, options) {
     return renderFunc;
 };
 
-makeThingGraphics = function (shapes, thingColors, scale, lineWidth) {
+makeThingGraphics = function (shape, thingColor, scale, lineWidth) {
 
     "use strict";
 
-    var pixiThing;
+    var pixiThing, pixiShape,
+        width, height, shapeRadius,
+        shapeColors;
 
     pixiThing = new PIXI.Graphics();
+    pixiShape = new PIXI.Graphics();
 
-    Object.keys(shapes).forEach(function (shapeIndex) {
+    shapeColors = getColors(thingColor);
 
-        var shape, pixiShape,
-            shapeOffset, shapeX, shapeY,
-            shapeAngle, width, height, shapeRadius,
-            shapeColors;
+    pixiShape.lineStyle(lineWidth, shapeColors.line, 1);
+    pixiShape.beginFill(shapeColors.fill);
 
-        shape = shapes[shapeIndex];
+    if (shape.type === "box") {
 
-        shapeOffset = shape.offset || [0, 0];
-        shapeX = shapeOffset[0] * scale;
-        shapeY = shapeOffset[1] * scale;
+        width = shape.width * scale;
+        height = shape.height * scale;
 
-        shapeAngle = shape.angle || 0;
+        pixiShape.drawRect(-width / 2, -height / 2, width, height);
 
+    } else if (shape.type === "circle") {
 
-        shapeColors = getColors(thingColors, shapeIndex);
+        shapeRadius = shape.radius * scale;
 
-        pixiShape = new PIXI.Graphics();
+        pixiShape.drawCircle(0, 0, shapeRadius);
+    }
 
-        pixiShape.lineStyle(lineWidth, shapeColors.line, 1);
-        pixiShape.beginFill(shapeColors.fill);
+    pixiShape.position = new PIXI.Point(0, 0);
+    pixiShape.rotation = 0;
 
-        if (shape.type === "box") {
+    pixiShape.endFill();
 
-            width = shape.options.width * scale;
-            height = shape.options.height * scale;
-
-            pixiShape.drawRect(-width / 2, -height / 2, width, height);
-
-        } else if (shape.type === "circle") {
-
-            shapeRadius = shape.options.radius * scale;
-
-            pixiShape.drawCircle(0, 0, shapeRadius);
-
-        } else if (shape.type === "plane") {
-
-            pixiShape.moveTo(-1000, 0);
-            pixiShape.lineTo(1000, 0);
-        }
-
-        pixiShape.position = new PIXI.Point(shapeX, shapeY);
-        pixiShape.rotation = shapeAngle;
-
-        pixiShape.endFill();
-
-        pixiThing.addChild(pixiShape);
-    });
+    pixiThing.addChild(pixiShape);
 
     return pixiThing;
 };
 
-getColors = function (thingColors, shapeIndex) {
+getColors = function (thingColor) {
 
     "use strict";
 
@@ -162,20 +141,11 @@ getColors = function (thingColors, shapeIndex) {
     lineColor = 0x000000;
     fillColor = 0xFFFFFF;
 
-    if (thingColors !== undefined) {
+    if (thingColor !== undefined) {
 
-        if (thingColors.defaults !== undefined) {
+        lineColor = parseInt(thingColor.line, 16);
+        fillColor = parseInt(thingColor.fill, 16);
 
-            lineColor = parseInt(thingColors.defaults.line, 16);
-            fillColor = parseInt(thingColors.defaults.fill, 16);
-        }
-
-        if (thingColors.perShape !== undefined
-                && thingColors.perShape[shapeIndex] !== undefined) {
-
-            lineColor = parseInt(thingColors.perShape[shapeIndex].line, 16);
-            fillColor = parseInt(thingColors.perShape[shapeIndex].fill, 16);
-        }
     }
 
     return {"line": lineColor, "fill": fillColor};
