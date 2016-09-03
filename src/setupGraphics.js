@@ -44,7 +44,7 @@ setupGraphics = function (things, unparsedColors, options) {
 
     // flip the Y axis so zero is at the bottom
     stage.scale = new PIXI.Point(1, -1);
-    stage.position = new PIXI.Point(0, height);
+    stage.position = new PIXI.Point(Math.floor(width / 2), height);
 
     graphics = new PIXI.Graphics();
     stage.addChild(graphics);
