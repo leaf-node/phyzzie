@@ -33,7 +33,7 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
     "use strict";
 
-    var world, things, renderFunc, simTime, iterate;
+    var world, things, renderFunc, simTime, iterate, promise;
 
     // todo: add assert statements
 
@@ -50,40 +50,42 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
     // virtual time for non-rendering mode only
     simTime = 0;
 
-    iterate = function () {
+    iterate = function (resolve, reject) {
 
         var continueSim, now;
 
         if (options.graphics.display === true) {
 
             now = new Date();
-            continueSim = world.step(now, interactionCallback);
+            continueSim = world.step(now, interactionCallback, resolve, reject);
 
             renderFunc();
 
             if (continueSim === true) {
-                window.requestAnimationFrame(iterate);
+                window.requestAnimationFrame(function () { iterate(resolve, reject); });
             }
 
         } else {
 
             // faster than real time simulation
             simTime += options.sim.maxStepMilliseconds;
-            continueSim = world.step(simTime, interactionCallback);
+            continueSim = world.step(simTime, interactionCallback, resolve, reject);
 
             if (continueSim === true) {
                 if (typeof setImmediate === 'function') {
-                    setImmediate(iterate);
+                    setImmediate(function () { iterate(resolve, reject); });
                 } else {
                     // the 0ms is actually ignored and set to about 4ms or 10ms,
                     // depending on the browser
-                    setTimeout(iterate, 0);
+                    setTimeout(function () { iterate(resolve, reject); }, 0);
                 }
             }
         }
     };
 
-    iterate();
+    promise = new Promise(iterate);
+
+    return promise;
 };
 
 module.exports = simulate;

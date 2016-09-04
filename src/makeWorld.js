@@ -179,7 +179,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
     newTicks = 0;
     ticksUntilInteract = 0;
 
-    step = function (currentTime, interact) {
+    step = function (currentTime, interactionCallback, resolve, reject) {
 
         var timeDiff, continueSim;
 
@@ -202,7 +202,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
         while (Math.floor(newTicks) > 0) {
 
             if (ticksUntilInteract === 0) {
-                continueSim = interact(getThings(), 1 / interactionsPerSecond);
+                continueSim = interactionCallback(getThings(), 1 / interactionsPerSecond, resolve, reject);
 
                 console.assert(continueSim === true || continueSim === false,
                         "phyzzie: interaction callback must return true or false. This determines whether to continue the simulation.");
