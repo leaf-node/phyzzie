@@ -13,11 +13,9 @@
 // limitations under the License.
 
 
-var setupGraphics, makeThingGraphics, getColors,
-    $, PIXI;
+var setupGraphics, makeThingGraphics, getColors, PIXI;
 
 PIXI = require('pixi.js');
-$ = require('jquery');
 
 setupGraphics = function (things, unparsedColors, options) {
 
@@ -32,11 +30,11 @@ setupGraphics = function (things, unparsedColors, options) {
     height          = options.height        || 600;
     scale           = options.scale         || 300;     // 300 pixels / meter
     lineWidth       = options.lineWidth     || 1;       // pixels
-    targetDiv       = options.targetDiv     || "#draw";
+    targetDiv       = options.targetDiv     || "draw";
     renderOptions   = options.renderOptions || {"transparent": true};
 
     renderer = PIXI.autoDetectRenderer(width, height, renderOptions);
-    $(targetDiv).append(renderer.view);
+    document.getElementById(targetDiv).appendChild(renderer.view);
 
     colors = JSON.parse(unparsedColors).colors;
 
