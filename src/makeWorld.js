@@ -266,7 +266,13 @@ thingEncapsulator = function (thing) {
         return [position.x, position.y];
     };
     getAngle = function () {
-        return body.GetAngle();
+        var angle;
+        angle = body.GetAngle();
+
+        angle = angle % (2 * Math.PI);
+        angle = angle + (2 * Math.PI) % (2 * Math.PI);
+
+        return angle;
     };
     getShape = function () {
         return util.copy(shape);
