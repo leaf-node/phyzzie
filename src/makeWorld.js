@@ -255,7 +255,7 @@ thingEncapsulator = function (thing) {
 
     var that, body, shape,
         getPosition, getAngle, getShape,
-        push;
+        getVelocity, push;
 
     body = thing[0];
     shape = thing[1];
@@ -264,6 +264,11 @@ thingEncapsulator = function (thing) {
         var position;
         position = body.GetPosition();
         return [position.x, position.y];
+    };
+    getVelocity = function () {
+        var velocity;
+        velocity = body.GetLinearVelocity();
+        return [velocity.x, velocity.y];
     };
     getAngle = function () {
         var angle;
@@ -293,6 +298,7 @@ thingEncapsulator = function (thing) {
 
     that = {};
     that.getPosition = getPosition;
+    that.getVelocity = getVelocity;
     that.getAngle = getAngle;
     that.getShape = getShape;
     that.push = push;
