@@ -79,6 +79,8 @@ makeWorldEditor = function (simOptions) {
         fixture.friction = thingDescription.options.fixture.friction;
         fixture.restitution = thingDescription.options.fixture.restitution;
         fixture.filter.groupIndex = thingDescription.options.fixture.groupIndex;
+        fixture.filter.categoryBits = thingDescription.options.fixture.categoryBits;
+        fixture.filter.maskBits = thingDescription.options.fixture.maskBits;
 
         if (fixture.density === undefined) {
             fixture.density = 1.0;
@@ -91,6 +93,12 @@ makeWorldEditor = function (simOptions) {
         }
         if (fixture.filter.groupIndex === undefined) {
             fixture.filter.groupIndex = 0;
+        }
+        if (fixture.filter.categoryBits === undefined) {
+            fixture.filter.categoryBits = 0x1;
+        }
+        if (fixture.filter.maskBits === undefined) {
+            fixture.filter.maskBits = 0xFFFF;
         }
 
         if (thingDescription.options.shape.type === "circle") {
