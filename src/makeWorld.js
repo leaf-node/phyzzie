@@ -263,7 +263,7 @@ thingEncapsulator = function (thing) {
 
     var that, body, shape,
         getPosition, getAngle, getShape,
-        getVelocity, push;
+        getVelocity, getAngularVelocity, push;
 
     body = thing[0];
     shape = thing[1];
@@ -287,6 +287,11 @@ thingEncapsulator = function (thing) {
 
         return angle;
     };
+    getAngularVelocity = function () {
+        var angularVelocity;
+        angularVelocity = body.GetAngularVelocity();
+        return angularVelocity;
+    };
     getShape = function () {
         return util.copy(shape);
     };
@@ -308,6 +313,7 @@ thingEncapsulator = function (thing) {
     that.getPosition = getPosition;
     that.getVelocity = getVelocity;
     that.getAngle = getAngle;
+    that.getAngularVelocity = getAngularVelocity;
     that.getShape = getShape;
     that.push = push;
 
