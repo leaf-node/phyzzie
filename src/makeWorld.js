@@ -283,7 +283,7 @@ thingEncapsulator = function (thing) {
         angle = body.GetAngle();
 
         angle = angle % (2 * Math.PI);
-        angle = angle + (2 * Math.PI) % (2 * Math.PI);
+        angle = (angle + (2 * Math.PI)) % (2 * Math.PI);
 
         return angle;
     };
