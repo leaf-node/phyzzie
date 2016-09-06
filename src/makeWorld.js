@@ -13,9 +13,9 @@
 // limitations under the License.
 
 
-var Box2D, util, worldInit,
-    worldEncapsulator, thingEncapsulator, multiStepWorld,
-    makeWorldEditor, addThingsToWorld, makeWorld;
+var Box2D, util,
+    worldEncapsulator, thingEncapsulator,
+    makeWorldEditor, makeWorld;
 
 // 2d physics simulator
 Box2D = require('./lib/Box2D-node.js');
