@@ -1,5 +1,9 @@
 # phyzzie
 
+This library simulates simple physical 2D worlds defined by json files.
+Simulations may be run programatically using nodejs at accelerated speed or
+rendered in the browser in real time.
+
 ## Licenses
 
 My contributions to phyzzie are licensed under the Apache License, Version 2.0.
