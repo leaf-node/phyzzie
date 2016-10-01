@@ -57,7 +57,14 @@ setupGraphics = function (things, unparsedColors, options) {
         graphics.addChild(thing.graphics);
     });
 
-    renderFunc = function () {
+    renderFunc = function (doRenderBool) {
+
+        // clean up
+        if (doRenderBool === false) {
+            document.getElementById(targetDiv).removeChild(renderer.view);
+            renderer.destroy();
+            return;
+        }
 
         Object.keys(things).forEach(function (thingName) {
 

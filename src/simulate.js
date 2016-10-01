@@ -59,10 +59,13 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
             now = new Date();
             continueSim = world.step(now, interactionCallback, resolve, reject);
 
-            renderFunc();
+            renderFunc(true);
 
             if (continueSim === true) {
                 window.requestAnimationFrame(function () { iterate(resolve, reject); });
+            } else {
+                // clean up
+                renderFunc(false);
             }
 
         } else {
