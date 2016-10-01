@@ -13,13 +13,13 @@
 // limitations under the License.
 
 
-var Box2D, util,
+var Box2D, clone,
     worldEncapsulator, thingEncapsulator,
     makeWorldEditor, makeWorld;
 
 // 2d physics simulator
 Box2D = require('./lib/Box2D-node.js');
-util = require('./lib/util.js');
+clone = require('clone');
 
 
 // creates an encapsulated physical simulation based on json world description
@@ -30,7 +30,7 @@ makeWorld = function (worldDescriptionJSON, simOptions) {
 
     var worldEditor;
 
-    worldEditor = makeWorldEditor(util.copy(simOptions));
+    worldEditor = makeWorldEditor(clone(simOptions));
 
     worldEditor.addThingsToWorld(worldDescriptionJSON);
 
@@ -293,7 +293,7 @@ thingEncapsulator = function (thing) {
         return angularVelocity;
     };
     getShape = function () {
-        return util.copy(shape);
+        return clone(shape);
     };
     push = function (impulse) {
         var impulseVector, impulseLocation;

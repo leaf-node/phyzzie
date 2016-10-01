@@ -9,6 +9,7 @@
       "LICENSE"
     ],
   "dependencies": {
+      "clone": "1.x",
       "pixi.js": "4.x"
   },
   "author": "Andrew Engelbrecht",
