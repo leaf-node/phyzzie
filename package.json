@@ -1,0 +1,16 @@
+{
+  "name": "phyzzie",
+  "version": "0.0.0",
+  "description": "Console and browser based physical 2D world simulation framework",
+  "main": "src/index.js",
+  "files": [
+      "src",
+      "README.md",
+      "LICENSE"
+    ],
+  "dependencies": {
+      "pixi.js": "4.x"
+  },
+  "author": "Andrew Engelbrecht",
+  "license": "SEE LICENSE IN README.md"
+}
