@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+/*global window,Promise */
+
 var simulate, isInBrowser, makeWorld, setupGraphics;
 
 isInBrowser = require('is-in-browser').default;
