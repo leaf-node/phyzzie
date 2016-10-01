@@ -57,11 +57,16 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
         if (options.graphics.display === true) {
 
             now = new Date();
-            continueSim = world.step(now, interactionCallback, resolve, reject);
-
-            renderFunc(true);
+            try {
+                continueSim = world.step(now, interactionCallback, resolve, reject);
+            } catch (e) {
+                reject(e);
+            }
 
             if (continueSim === true) {
+
+                renderFunc(true);
+
                 window.requestAnimationFrame(function () { iterate(resolve, reject); });
             } else {
                 // clean up
@@ -72,7 +77,12 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
             // faster than real time simulation
             simTime += options.sim.maxStepMilliseconds;
-            continueSim = world.step(simTime, interactionCallback, resolve, reject);
+
+            try {
+                continueSim = world.step(simTime, interactionCallback, resolve, reject);
+            } catch (e) {
+                reject(e);
+            }
 
             if (continueSim === true) {
                 if (typeof setImmediate === 'function') {
