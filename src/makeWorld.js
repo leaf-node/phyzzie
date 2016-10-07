@@ -175,11 +175,12 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
     var that, step, getThings, newTicks, prevTime,
         simStepsPerSecond, simStepsPerInteraction,
         maxStepMilliseconds, interactionsPerSecond,
-        ticksUntilInteract;
+        iterationsPerSimStep, ticksUntilInteract;
 
     interactionsPerSecond   = simOptions.interactionsPerSecond;
     simStepsPerInteraction  = simOptions.simStepsPerInteraction;
     maxStepMilliseconds     = simOptions.maxStepMilliseconds;
+    iterationsPerSimStep    = simOptions.iterationsPerSimStep;
 
 
     simStepsPerSecond = simStepsPerInteraction * interactionsPerSecond;
@@ -223,7 +224,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
             }
 
             // the Box2D function, not this function being defined
-            world.Step(1 / simStepsPerSecond, 10, 10);
+            world.Step(1 / simStepsPerSecond, iterationsPerSimStep, iterationsPerSimStep);
 
             newTicks -= 1;
             ticksUntilInteract -= 1;
