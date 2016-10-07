@@ -1,0 +1,34 @@
+{
+    "things": [
+        {
+            "id": "ground",
+            "options": {
+                "body": {"isStatic": true, "position": [0, 1], "angle": 0, "velocity": [0,0], "angularVelocity": 0},
+                "fixture": {"friction": 0.1, "density": 1, "restitution": 0.2, "maskBits": 1 },
+                "shape": {"type": "box", "width": 1, "height": 0.05}
+            }
+        },{
+            "id": "base",
+            "options": {
+                "body": {"position": [0, 1.075], "angle": 0, "velocity": [0,0], "angularVelocity": 0},
+                "fixture": {"friction": 0.1, "density": 1, "restitution": 0.2, "maskBits": 1},
+                "shape": {"type": "box", "width": 0.2, "height": 0.1}
+            }
+        },{
+            "id": "pendulum1",
+            "options": {
+                "body": {"position": [0, 0.875], "angle": 3.141592653589793, "velocity": [0,0], "angularVelocity": 0},
+                "fixture": {"friction": 0.1, "density": 1, "restitution": 0.2, "categoryBits": 2},
+                "shape": {"type": "box", "width": 0.02, "height": 0.4, "resize": false}
+            }
+        }
+    ],
+    "joints": [
+        {
+            "type": "revolute",
+            "bodyA": "base",
+            "bodyB": "pendulum1",
+            "anchor": [0, 1.075]
+        }
+    ]
+}

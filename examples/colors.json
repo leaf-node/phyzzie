@@ -1,0 +1,8 @@
+{
+    "colors":
+    {
+        "ground":       {"line": "0x000000", "fill": "0x9F9F9F"},
+        "base":         {"line": "0x000000", "fill": "0xDFDFFF"},
+        "pendulum1":    {"line": "0x000000", "fill": "0xFFFFFF"}
+    }
+}
