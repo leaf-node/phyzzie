@@ -37,8 +37,6 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
     var world, things, renderFunc, simTime, iterate, promise;
 
-    // todo: add assert statements
-
     world = makeWorld(thingsDescription, options.sim);
     things = world.getThings();
 
