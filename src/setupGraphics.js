@@ -26,6 +26,9 @@ setupGraphics = function (things, unparsedColors, options) {
         stage, graphics, renderFunc,
         width, height, scale, lineWidth, targetDiv;
 
+    console.assert(typeof options === "object" || options === undefined,
+            "phyzzie: error: graphics options must be an object or undefined");
+
     options         = options               || {};
     width           = options.width         || 800;
     height          = options.height        || 600;
@@ -34,10 +37,32 @@ setupGraphics = function (things, unparsedColors, options) {
     targetDiv       = options.targetDiv     || "draw";
     renderOptions   = options.renderOptions || {"transparent": true};
 
+    unparsedColors  = unparsedColors        || "{\"colors\": {}}";
+
+    console.assert(typeof width === "number" && !isNaN(width),
+            "phyzzie: error: width must be a number or undefined.");
+    console.assert(typeof height === "number" && !isNaN(height),
+            "phyzzie: error: height must be a number or undefined.");
+    console.assert(typeof scale === "number" && !isNaN(scale),
+            "phyzzie: error: scale must be a number or undefined.");
+    console.assert(typeof lineWidth === "number" && !isNaN(lineWidth),
+            "phyzzie: error: lineWidth must be a number or undefined.");
+    console.assert(typeof targetDiv === "string",
+            "phyzzie: error: targetDiv must be a string or undefined.");
+    console.assert(typeof renderOptions === "object",
+            "phyzzie: error: renderOptions must be an object or undefined.");
+
     renderer = PIXI.autoDetectRenderer(width, height, renderOptions);
     document.getElementById(targetDiv).appendChild(renderer.view);
 
     colors = JSON.parse(unparsedColors).colors;
+
+    console.assert(typeof unparsedColors === "string",
+            "phyzzie: error: colors must be a JSON string or undefined.");
+    console.assert(colors !== undefined,
+            "phyzzie: error: there must be a \"colors\" member of colors settings JSON.");
+    console.assert(typeof colors === "object",
+            "phyzzie: error: \"colors\" member of colors settings JSON must be an object.");
 
     stage = new PIXI.Container();
 
@@ -135,9 +160,18 @@ getColors = function (thingColor) {
 
     if (thingColor !== undefined) {
 
+        console.assert(typeof thingColor.line === "string",
+                "phyzzie: error: line color setting must be a string containing a number.");
+        console.assert(typeof thingColor.fill === "string",
+                "phyzzie: error: fill color setting must be a string containing a number.");
+
         lineColor = parseInt(thingColor.line, 16);
         fillColor = parseInt(thingColor.fill, 16);
 
+        console.assert(typeof lineColor === "number" && !isNaN(lineColor),
+                "phyzzie: error: line color setting must be a string containing a number.");
+        console.assert(typeof fillColor === "number" && !isNaN(fillColor),
+                "phyzzie: error: fill color setting must be a string containing a number.");
     }
 
     return {"line": lineColor, "fill": fillColor};
