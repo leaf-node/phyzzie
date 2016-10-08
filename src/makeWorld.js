@@ -281,7 +281,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
             return true;
         }
 
-        console.assert(typeof currentTime === "object",
+        console.assert(typeof currentTime === "object" || typeof currentTime === "number",
                 "phyzzie: error: invalid currentTime: " + currentTime);
 
         timeDiff = currentTime - prevTime;
