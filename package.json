@@ -10,7 +10,8 @@
     ],
   "dependencies": {
       "clone": "1.x",
-      "pixi.js": "4.x"
+      "pixi.js": "4.x",
+      "assert": "1.x"
   },
   "author": "Andrew Engelbrecht",
   "license": "SEE LICENSE IN README.md"

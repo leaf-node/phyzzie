@@ -15,15 +15,16 @@
 
 /*global window,Promise */
 
-var simulate, isInBrowser, makeWorld, setupGraphics;
+var simulate, isInBrowser, makeWorld, setupGraphics, assert;
 
 isInBrowser = require('is-in-browser').default;
 makeWorld = require('./makeWorld.js');
+assert = require('assert');
 
 if (isInBrowser === false) {
     setupGraphics = function () {
         "use strict";
-        console.assert(isInBrowser !== false,
+        assert(isInBrowser !== false,
                 "phyzzie: the setupGraphics function can only be used in the browser.");
     };
 } else {
@@ -42,7 +43,7 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
     options.graphics = options.graphics || {};
     if (options.graphics.display === true) {
-        console.assert(isInBrowser !== false, "phyzzie: display mode can only be used within the browser.");
+        assert(isInBrowser !== false, "phyzzie: display mode can only be used within the browser.");
         renderFunc = setupGraphics(things, colorsDescription, options.graphics);
     }
 

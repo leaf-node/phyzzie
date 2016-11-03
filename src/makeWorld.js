@@ -13,13 +13,14 @@
 // limitations under the License.
 
 
-var Box2D, clone,
+var Box2D, clone, assert,
     worldEncapsulator, thingEncapsulator,
     makeWorldEditor, makeWorld;
 
 // 2d physics simulator
 Box2D = require('./lib/Box2D-node.js');
 clone = require('clone');
+assert = require('assert');
 
 
 // creates an encapsulated physical simulation based on json world description
@@ -30,9 +31,9 @@ makeWorld = function (worldDescriptionJSON, simOptions) {
 
     var worldEditor;
 
-    console.assert(typeof worldDescriptionJSON === "string",
+    assert(typeof worldDescriptionJSON === "string",
             "phyzzie: error: world description must be a string.");
-    console.assert(typeof simOptions === "object",
+    assert(typeof simOptions === "object",
             "phyzzie: error: options must be an object.");
 
     worldEditor = makeWorldEditor(clone(simOptions));
@@ -69,51 +70,51 @@ makeWorldEditor = function (simOptions) {
 
         body = new Box2D.b2BodyDef();
 
-        console.assert(typeof thingDescription === "object",
+        assert(typeof thingDescription === "object",
                 "phyzzie: error: invalid description: thing must be an object.");
-        console.assert(typeof thingDescription.id === "string",
+        assert(typeof thingDescription.id === "string",
                 "phyzzie: error: invalid description: thing id must be a string.");
-        console.assert(typeof thingDescription.options === "object",
+        assert(typeof thingDescription.options === "object",
                 "phyzzie: error: invalid description: thing options must be an object.");
-        console.assert(typeof thingDescription.options.body === "object",
+        assert(typeof thingDescription.options.body === "object",
                 "phyzzie: error: invalid description: thing body must be an object.");
 
-        console.assert(Array.isArray(thingDescription.options.body.position),
+        assert(Array.isArray(thingDescription.options.body.position),
                 "phyzzie: error: invalid description: thing body position must be an array.");
-        console.assert(typeof thingDescription.options.body.position[0] === "number" && !isNaN(thingDescription.options.body.position[0]),
+        assert(typeof thingDescription.options.body.position[0] === "number" && !isNaN(thingDescription.options.body.position[0]),
                 "phyzzie: error: invalid description: thing body position must contain two numbers.");
-        console.assert(typeof thingDescription.options.body.position[1] === "number" && !isNaN(thingDescription.options.body.position[1]),
+        assert(typeof thingDescription.options.body.position[1] === "number" && !isNaN(thingDescription.options.body.position[1]),
                 "phyzzie: error: invalid description: thing body position must contain two numbers.");
-        console.assert(typeof thingDescription.options.body.angle === "number" && !isNaN(thingDescription.options.body.angle),
+        assert(typeof thingDescription.options.body.angle === "number" && !isNaN(thingDescription.options.body.angle),
                 "phyzzie: error: invalid description: thing body angle must be a number.");
 
-        console.assert(typeof thingDescription.options.body.isStatic === "boolean" || thingDescription.options.body.isStatic === undefined,
+        assert(typeof thingDescription.options.body.isStatic === "boolean" || thingDescription.options.body.isStatic === undefined,
                 "phyzzie: error: invalid description: thing body isStatic setting must be a boolean or undefined.");
 
-        console.assert(thingDescription.options.body.velocity === undefined,
+        assert(thingDescription.options.body.velocity === undefined,
                 "phyzzie: error: invalid description: thing body velocity setting must be undefined.");
-        console.assert(thingDescription.options.body.angularVelocity === undefined,
+        assert(thingDescription.options.body.angularVelocity === undefined,
                 "phyzzie: error: invalid description: thing body angularVelocity setting must be undefined.");
 
         ["density", "friction", "restitution", "groupIndex", "categoryBits", "maskBits"].map(function (setting) {
-            console.assert((typeof thingDescription.options.fixture[setting] === "number" && !isNaN(thingDescription.options.fixture[setting])) || thingDescription.options.fixture[setting] === undefined,
+            assert((typeof thingDescription.options.fixture[setting] === "number" && !isNaN(thingDescription.options.fixture[setting])) || thingDescription.options.fixture[setting] === undefined,
                     "phyzzie: error: invalid description: thing body fixture " + setting + " setting must be a number or undefined.");
         });
 
-        console.assert(thingDescription.options.shape.type === "box" || thingDescription.options.shape.type === "circle",
+        assert(thingDescription.options.shape.type === "box" || thingDescription.options.shape.type === "circle",
                 "phyzzie: error: invalid description: thing shape type setting must be \"box\" or \"circle\".");
 
         if (thingDescription.options.shape.type === "box") {
-            console.assert(typeof thingDescription.options.shape.height === "number" && !isNaN(thingDescription.options.shape.height),
+            assert(typeof thingDescription.options.shape.height === "number" && !isNaN(thingDescription.options.shape.height),
                     "phyzzie: error: invalid description: thing shape height must be a number.");
-            console.assert(typeof thingDescription.options.shape.width === "number" && !isNaN(thingDescription.options.shape.width),
+            assert(typeof thingDescription.options.shape.width === "number" && !isNaN(thingDescription.options.shape.width),
                     "phyzzie: error: invalid description: thing shape width must be a number.");
         } else {
-            console.assert(typeof thingDescription.options.shape.radius === "number" && !isNaN(thingDescription.options.shape.radius),
+            assert(typeof thingDescription.options.shape.radius === "number" && !isNaN(thingDescription.options.shape.radius),
                     "phyzzie: error: invalid description: thing shape radius must be a number.");
         }
 
-        console.assert(typeof thingDescription.options.shape.resize === "boolean" || thingDescription.options.shape.resize === undefined,
+        assert(typeof thingDescription.options.shape.resize === "boolean" || thingDescription.options.shape.resize === undefined,
                 "phyzzie: error: invalid description: thing shape resize setting must be a boolean or not included.");
 
 
@@ -167,7 +168,7 @@ makeWorldEditor = function (simOptions) {
             fixture.shape = new Box2D.b2PolygonShape();
             fixture.shape.SetAsBox(width / 2, height / 2);
         } else {
-            console.assert(false, "phyzzie: error: unsupported object shape: " + thingDescription.options.shape.type);
+            assert(false, "phyzzie: error: unsupported object shape: " + thingDescription.options.shape.type);
         }
 
         bodyObj = world.CreateBody(body);
@@ -182,18 +183,18 @@ makeWorldEditor = function (simOptions) {
 
         var joint, bodyA, bodyB, anchorLocation;
 
-        console.assert(jointDescription.type === "revolute",
+        assert(jointDescription.type === "revolute",
                 "phyzzie: error: joint type must be \"revolute\".");
-        console.assert(typeof jointDescription.bodyA === "string" && thingsByName[jointDescription.bodyA] !== undefined,
+        assert(typeof jointDescription.bodyA === "string" && thingsByName[jointDescription.bodyA] !== undefined,
                 "phyzzie: error: bodyA option must be the name of an existing object.");
-        console.assert(typeof jointDescription.bodyB === "string" && thingsByName[jointDescription.bodyB] !== undefined,
+        assert(typeof jointDescription.bodyB === "string" && thingsByName[jointDescription.bodyB] !== undefined,
                 "phyzzie: error: bodyB option must be the name of an existing object.");
 
-        console.assert(Array.isArray(jointDescription.anchor),
+        assert(Array.isArray(jointDescription.anchor),
                 "phyzzie: error: joint anchor must be an array.");
-        console.assert(typeof jointDescription.anchor[0] === "number" && !isNaN(jointDescription.anchor[0]),
+        assert(typeof jointDescription.anchor[0] === "number" && !isNaN(jointDescription.anchor[0]),
                 "phyzzie: error: joint anchor array must contain two numbers.");
-        console.assert(typeof jointDescription.anchor[1] === "number" && !isNaN(jointDescription.anchor[1]),
+        assert(typeof jointDescription.anchor[1] === "number" && !isNaN(jointDescription.anchor[1]),
                 "phyzzie: error: joint anchor array must contain two numbers.");
 
         bodyA = thingsByName[jointDescription.bodyA][0];
@@ -205,7 +206,7 @@ makeWorldEditor = function (simOptions) {
             joint = new Box2D.b2RevoluteJointDef();
             joint.Initialize(bodyA, bodyB, anchorLocation);
         } else {
-            console.assert(false, "phyzzie: error: unsupported constraint type: " + jointDescription.type);
+            assert(false, "phyzzie: error: unsupported constraint type: " + jointDescription.type);
         }
 
         world.CreateJoint(joint);
@@ -218,11 +219,11 @@ makeWorldEditor = function (simOptions) {
 
         worldDescription = JSON.parse(worldDescriptionJSON);
 
-        console.assert(typeof worldDescription === "object",
+        assert(typeof worldDescription === "object",
                 "phyzzie: error: invalid world description: JSON must define an object.");
-        console.assert(Array.isArray(worldDescription.things),
+        assert(Array.isArray(worldDescription.things),
                 "phyzzie: error: invalid world description: JSON must define a things array.");
-        console.assert(Array.isArray(worldDescription.joints) || worldDescription.joints === undefined,
+        assert(Array.isArray(worldDescription.joints) || worldDescription.joints === undefined,
                 "phyzzie: error: invalid world description: if including joints, the joints member must be an array.");
 
         worldDescription.things.forEach(addThing);
@@ -256,13 +257,13 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
     maxStepMilliseconds     = simOptions.maxStepMilliseconds;
     iterationsPerSimStep    = simOptions.iterationsPerSimStep;
 
-    console.assert(typeof interactionsPerSecond === "number" && !isNaN(interactionsPerSecond),
+    assert(typeof interactionsPerSecond === "number" && !isNaN(interactionsPerSecond),
             "phyzzie: error: invalid options: interactionsPerSecond must be a number.");
-    console.assert(typeof simStepsPerInteraction === "number" && !isNaN(simStepsPerInteraction),
+    assert(typeof simStepsPerInteraction === "number" && !isNaN(simStepsPerInteraction),
             "phyzzie: error: invalid options: simStepsPerInteraction must be a number.");
-    console.assert(typeof maxStepMilliseconds === "number" && !isNaN(maxStepMilliseconds),
+    assert(typeof maxStepMilliseconds === "number" && !isNaN(maxStepMilliseconds),
             "phyzzie: error: invalid options: maxStepMilliseconds must be a number.");
-    console.assert(typeof iterationsPerSimStep === "number" && !isNaN(iterationsPerSimStep),
+    assert(typeof iterationsPerSimStep === "number" && !isNaN(iterationsPerSimStep),
             "phyzzie: error: invalid options: iterationsPerSimStep must be a number.");
 
 
@@ -281,12 +282,12 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
             return true;
         }
 
-        console.assert(typeof currentTime === "object" || typeof currentTime === "number",
+        assert(typeof currentTime === "object" || typeof currentTime === "number",
                 "phyzzie: error: invalid currentTime: " + currentTime);
 
         timeDiff = currentTime - prevTime;
 
-        console.assert(timeDiff >= 0, "phyzzie: error: reverse time travel not allowed.");
+        assert(timeDiff >= 0, "phyzzie: error: reverse time travel not allowed.");
 
         if (timeDiff > maxStepMilliseconds) {
             timeDiff = maxStepMilliseconds;
@@ -299,7 +300,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
             if (ticksUntilInteract === 0) {
                 continueSim = interactionCallback(getThings(), 1 / interactionsPerSecond, resolve, reject);
 
-                console.assert(continueSim === true || continueSim === false,
+                assert(continueSim === true || continueSim === false,
                         "phyzzie: error: interaction callback must return true or false. This determines whether to continue the simulation.");
 
                 if (continueSim === false) {
@@ -385,10 +386,10 @@ thingEncapsulator = function (thing) {
     push = function (impulse) {
         var impulseVector, impulseLocation;
 
-        console.assert(Array.isArray(impulse), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        assert(Array.isArray(impulse), "phyzzie: " + impulse + " is not a valid coordinate array.");
 
-        console.assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: " + impulse + " is not a valid coordinate array.");
-        console.assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: " + impulse + " is not a valid coordinate array.");
 
         impulseVector = new Box2D.b2Vec2(impulse[0], impulse[1]);
         impulseLocation = body.GetWorldPoint(new Box2D.b2Vec2(0, 0));
