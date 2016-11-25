@@ -36,7 +36,7 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
     "use strict";
 
-    var world, things, renderFunc, iterate, promise, prevTime;
+    var world, things, renderFunc, iterate, prevTime;
 
     world = makeWorld(thingsDescription, options.sim);
     things = world.getThings();
@@ -110,9 +110,7 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
         }
     };
 
-    promise = new Promise(iterate);
-
-    return promise;
+    return new Promise(iterate);
 };
 
 module.exports = simulate;
