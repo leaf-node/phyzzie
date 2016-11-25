@@ -247,22 +247,19 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
 
     "use strict";
 
-    var that, step, getThings, newTicks, prevTime,
+    var that, step, getThings, newTicks,
         simStepsPerSecond, simStepsPerInteraction,
-        maxStepMilliseconds, interactionsPerSecond,
-        iterationsPerSimStep, ticksUntilInteract;
+        interactionsPerSecond, iterationsPerSimStep,
+        ticksUntilInteract;
 
     interactionsPerSecond   = simOptions.interactionsPerSecond;
     simStepsPerInteraction  = simOptions.simStepsPerInteraction;
-    maxStepMilliseconds     = simOptions.maxStepMilliseconds;
     iterationsPerSimStep    = simOptions.iterationsPerSimStep;
 
     assert(typeof interactionsPerSecond === "number" && !isNaN(interactionsPerSecond),
             "phyzzie: error: invalid options: interactionsPerSecond must be a number.");
     assert(typeof simStepsPerInteraction === "number" && !isNaN(simStepsPerInteraction),
             "phyzzie: error: invalid options: simStepsPerInteraction must be a number.");
-    assert(typeof maxStepMilliseconds === "number" && !isNaN(maxStepMilliseconds),
-            "phyzzie: error: invalid options: maxStepMilliseconds must be a number.");
     assert(typeof iterationsPerSimStep === "number" && !isNaN(iterationsPerSimStep),
             "phyzzie: error: invalid options: iterationsPerSimStep must be a number.");
 
@@ -272,26 +269,14 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
     newTicks = 0;
     ticksUntilInteract = 0;
 
-    step = function (currentTime, interactionCallback, resolve, reject) {
+    step = function (timeDiff, interactionCallback, resolve, reject) {
 
-        var timeDiff, continueSim;
+        var continueSim;
 
-        // first call to .step()
-        if (prevTime === undefined) {
-            prevTime = currentTime;
-            return true;
-        }
-
-        assert(typeof currentTime === "object" || typeof currentTime === "number",
-                "phyzzie: error: invalid currentTime: " + currentTime);
-
-        timeDiff = currentTime - prevTime;
+        assert(typeof timeDiff === "number",
+                "phyzzie: error: invalid timeDiff: " + timeDiff);
 
         assert(timeDiff >= 0, "phyzzie: error: reverse time travel not allowed.");
-
-        if (timeDiff > maxStepMilliseconds) {
-            timeDiff = maxStepMilliseconds;
-        }
 
         newTicks += timeDiff / 1000 * simStepsPerSecond;
 
@@ -316,8 +301,6 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
             newTicks -= 1;
             ticksUntilInteract -= 1;
         }
-
-        prevTime = currentTime;
 
         return true;
     };

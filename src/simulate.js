@@ -36,7 +36,7 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
 
     "use strict";
 
-    var world, things, renderFunc, simTime, iterate, promise;
+    var world, things, renderFunc, iterate, promise, prevTime;
 
     world = makeWorld(thingsDescription, options.sim);
     things = world.getThings();
@@ -46,23 +46,36 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
         assert(isInBrowser !== false, "phyzzie: display mode can only be used within the browser.");
         renderFunc = setupGraphics(things, colorsDescription, options.graphics);
     }
+    assert(typeof options.sim.maxStepMilliseconds === "number" && !isNaN(options.sim.maxStepMilliseconds),
+            "phyzzie: error: invalid options: maxStepMilliseconds must be a number.");
 
-
-    // virtual time for non-rendering mode only
-    simTime = 0;
 
     iterate = function (resolve, reject) {
 
-        var continueSim, now;
+        var continueSim, currentTime, timeDiff;
 
         if (options.graphics.display === true) {
 
-            now = new Date();
+            currentTime = new Date();
+
+            // first call to this function
+            if (prevTime === undefined) {
+                prevTime = currentTime;
+            }
+
+            timeDiff = currentTime - prevTime;
+
+            if (timeDiff > options.sim.maxStepMilliseconds) {
+                timeDiff = options.sim.maxStepMilliseconds;
+            }
+
             try {
-                continueSim = world.step(now, interactionCallback, resolve, reject);
+                continueSim = world.step(timeDiff, interactionCallback, resolve, reject);
             } catch (e) {
                 reject(e);
             }
+
+            prevTime = currentTime;
 
             if (continueSim === true) {
 
@@ -77,10 +90,10 @@ simulate = function (thingsDescription, colorsDescription, interactionCallback, 
         } else {
 
             // faster than real time simulation
-            simTime += options.sim.maxStepMilliseconds;
+            timeDiff = options.sim.maxStepMilliseconds;
 
             try {
-                continueSim = world.step(simTime, interactionCallback, resolve, reject);
+                continueSim = world.step(timeDiff, interactionCallback, resolve, reject);
             } catch (e) {
                 reject(e);
             }
