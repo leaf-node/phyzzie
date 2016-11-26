@@ -6,9 +6,6 @@ Simulations may be run programatically using nodejs at accelerated speed or
 rendered in the browser in real time. Use of this library in the browser
 requires transpiling with browserify.
 
-Phyzzie does not yet support adding rotational force to objects. Objects may
-rotate through object interaction.
-
 Phyzzie uses javascript promises and callbacks to complement its asynchronous
 nature.
 

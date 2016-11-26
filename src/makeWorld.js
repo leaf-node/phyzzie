@@ -366,18 +366,29 @@ thingEncapsulator = function (thing) {
     getShape = function () {
         return clone(shape);
     };
-    push = function (impulse) {
-        var impulseVector, impulseLocation;
+    push = function (impulse, impulseLocation) {
+        var impulseVector, impulseLocationVector;
 
-        assert(Array.isArray(impulse), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        assert(Array.isArray(impulse), "phyzzie: impulse: (" + impulse + ") must be a valid coordinate array or undefined.");
 
-        assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: " + impulse + " is not a valid coordinate array.");
-        assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: " + impulse + " is not a valid coordinate array.");
+        assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: impulse: (" + impulse + ") is not a valid coordinate array.");
+        assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: impulse: (" + impulse + ") is not a valid coordinate array.");
+
+        if (impulseLocation !== undefined) {
+
+            assert(Array.isArray(impulseLocation), "phyzzie: impulseLocation (" + impulseLocation + ") must be a valid coordinate array or undefined.");
+
+            assert(typeof impulseLocation[0] === "number" && !isNaN(impulseLocation[0]), "phyzzie: impulseLocation (" + impulseLocation + ") is not a valid coordinate array.");
+            assert(typeof impulseLocation[1] === "number" && !isNaN(impulseLocation[1]), "phyzzie: impulseLocation (" + impulseLocation + ") is not a valid coordinate array.");
+
+        } else {
+            impulseLocation = [0, 0];
+        }
 
         impulseVector = new Box2D.b2Vec2(impulse[0], impulse[1]);
-        impulseLocation = body.GetWorldPoint(new Box2D.b2Vec2(0, 0));
+        impulseLocationVector = body.GetWorldPoint(new Box2D.b2Vec2(impulseLocation[0], impulseLocation[1]));
 
-        body.ApplyImpulse(impulseVector, impulseLocation);
+        body.ApplyImpulse(impulseVector, impulseLocationVector);
     };
 
     that = {};
