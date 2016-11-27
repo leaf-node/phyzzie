@@ -34,7 +34,7 @@ makeWorld = function (worldDescriptionJSON, simOptions) {
     assert(typeof worldDescriptionJSON === "string",
             "phyzzie: error: world description must be a string.");
     assert(typeof simOptions === "object",
-            "phyzzie: error: options must be an object.");
+            "phyzzie: error: sim options must be an object.");
 
     worldEditor = makeWorldEditor(clone(simOptions));
 
