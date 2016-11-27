@@ -227,7 +227,9 @@ makeWorldEditor = function (simOptions) {
                 "phyzzie: error: invalid world description: if including joints, the joints member must be an array.");
 
         worldDescription.things.forEach(addThing);
-        worldDescription.joints.forEach(createJoint);
+        if (worldDescription.joints !== undefined) {
+            worldDescription.joints.forEach(createJoint);
+        }
     };
 
     // returns encapsulated world
