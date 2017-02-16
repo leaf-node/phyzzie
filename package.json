@@ -1,6 +1,6 @@
 {
   "name": "phyzzie",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Console and browser based physical 2D world simulation framework",
   "url": "https://gitlab.com/sudoman/phyzzie/issues",
   "repository": "gitlab:sudoman/phyzzie",
@@ -13,7 +13,8 @@
   "dependencies": {
       "clone": "1.0.x",
       "pixi.js": "4.0.x",
-      "assert": "1.4.x"
+      "assert": "1.4.x",
+      "is-in-browser": "1.1.x"
   },
   "author": "Andrew Engelbrecht",
   "license": "SEE LICENSE IN README.md"
