@@ -6,15 +6,16 @@
   "repository": "gitlab:sudoman/phyzzie",
   "main": "src/index.js",
   "files": [
-      "src",
-      "README.md",
-      "LICENSE"
-    ],
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
-      "clone": "1.0.x",
-      "pixi.js": "4.0.x",
-      "assert": "1.4.x",
-      "is-in-browser": "1.1.x"
+    "assert": "1.4.x",
+    "chipmunk": "git+https://github.com/sudoman/Chipmunk-js.git#d96be279c8767bd5aa8a36d8ed0b6ab0499451bc",
+    "clone": "1.0.x",
+    "is-in-browser": "1.1.x",
+    "pixi.js": "4.0.x"
   },
   "author": "Andrew Engelbrecht",
   "license": "SEE LICENSE IN README.md"

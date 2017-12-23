@@ -13,12 +13,12 @@
 // limitations under the License.
 
 
-var Box2D, clone, assert,
+var cp, clone, assert,
     worldEncapsulator, thingEncapsulator,
     makeWorldEditor, makeWorld;
 
 // 2d physics simulator
-Box2D = require('./lib/Box2D-node.js');
+cp = require('chipmunk');
 clone = require('clone');
 assert = require('assert');
 
@@ -51,13 +51,13 @@ makeWorldEditor = function (simOptions) {
     var that, thingsByName, encapsulatedThingsByName,
         addThing, createJoint,
         addThingsToWorld, world, enableSleep, getEncapsulatedWorld,
-        box2dSkinWidth, gravity;
+        mass, moment,
+        bodyPosition, shapePosition, verts, shape, shapeData;
 
     enableSleep = false;
-    box2dSkinWidth = 0.005;
 
-    gravity = new Box2D.b2Vec2(0, -9.8);
-    world = new Box2D.b2World(gravity, enableSleep);
+    world = new cp.Space();
+    world.gravity = cp.v(0, -9.8);
 
 
     thingsByName = {};
@@ -66,9 +66,7 @@ makeWorldEditor = function (simOptions) {
     // create bodies and shapes
     addThing = function (thingDescription) {
 
-        var body, fixture, bodyObj, width, height, radius;
-
-        body = new Box2D.b2BodyDef();
+        var body, bodyObj, width, height, radius, xCoordinate, yCoordinate;
 
         assert(typeof thingDescription === "object",
                 "phyzzie: error: invalid description: thing must be an object.");
@@ -96,9 +94,9 @@ makeWorldEditor = function (simOptions) {
         assert(thingDescription.options.body.angularVelocity === undefined,
                 "phyzzie: error: invalid description: thing body angularVelocity setting must be undefined.");
 
-        ["density", "friction", "restitution", "groupIndex", "categoryBits", "maskBits"].map(function (setting) {
-            assert((typeof thingDescription.options.fixture[setting] === "number" && !isNaN(thingDescription.options.fixture[setting])) || thingDescription.options.fixture[setting] === undefined,
-                    "phyzzie: error: invalid description: thing body fixture " + setting + " setting must be a number or undefined.");
+        ["density", "friction", "elasticity", "groupIndex", "layers"].map(function (setting) {
+            assert((typeof thingDescription.options.shape[setting] === "number" && !isNaN(thingDescription.options.shape[setting])) || thingDescription.options.shape[setting] === undefined,
+                    "phyzzie: error: invalid description: thing body shape " + setting + " setting must be a number or undefined.");
         });
 
         assert(thingDescription.options.shape.type === "box" || thingDescription.options.shape.type === "circle",
@@ -118,63 +116,93 @@ makeWorldEditor = function (simOptions) {
                 "phyzzie: error: invalid description: thing shape resize setting must be a boolean or not included.");
 
 
-        if (thingDescription.options.body.isStatic === true) {
-            body.type = Box2D.b2Body.b2_staticBody;
-        } else {
-            body.type = Box2D.b2Body.b2_dynamicBody;
+        if (thingDescription.options.shape.density === undefined) {
+            thingDescription.options.shape.density = 1.0;
+        }
+        if (thingDescription.options.shape.friction === undefined) {
+            thingDescription.options.shape.friction = 0.5;
+        }
+        if (thingDescription.options.shape.elasticity === undefined) {
+            thingDescription.options.shape.elasticity = 0.2;
+        }
+        if (thingDescription.options.shape.groupIndex === undefined) {
+            thingDescription.options.shape.groupIndex = 0;
+        }
+        if (thingDescription.options.shape.layers === undefined) {
+            thingDescription.options.shape.layers = cp.ALL_LAYERS;
         }
 
-        body.position.x = thingDescription.options.body.position[0];
-        body.position.y = thingDescription.options.body.position[1];
-        body.angle      = thingDescription.options.body.angle;
-
-        fixture = new Box2D.b2FixtureDef();
-        fixture.density = thingDescription.options.fixture.density;
-        fixture.friction = thingDescription.options.fixture.friction;
-        fixture.restitution = thingDescription.options.fixture.restitution;
-        fixture.filter.groupIndex = thingDescription.options.fixture.groupIndex;
-        fixture.filter.categoryBits = thingDescription.options.fixture.categoryBits;
-        fixture.filter.maskBits = thingDescription.options.fixture.maskBits;
-
-        if (fixture.density === undefined) {
-            fixture.density = 1.0;
-        }
-        if (fixture.friction === undefined) {
-            fixture.friction = 0.5;
-        }
-        if (fixture.restitution === undefined) {
-            fixture.restitution = 0.2;
-        }
-        if (fixture.filter.groupIndex === undefined) {
-            fixture.filter.groupIndex = 0;
-        }
-        if (fixture.filter.categoryBits === undefined) {
-            fixture.filter.categoryBits = 0x1;
-        }
-        if (fixture.filter.maskBits === undefined) {
-            fixture.filter.maskBits = 0xFFFF;
-        }
 
         if (thingDescription.options.shape.type === "circle") {
-            radius = thingDescription.options.shape.radius;
-            fixture.shape = new Box2D.b2CircleShape(radius);
+
+            mass = cpAreaForCircle(0, thingDescription.options.shape.radius) * thingDescription.options.shape.density;
+            moment = cp.momentForCircle(mass, 0, thingDescription.options.shape.radius, cp.vzero);
+
         } else if (thingDescription.options.shape.type === "box") {
-            width = thingDescription.options.shape.width;
-            height = thingDescription.options.shape.height;
-            if (thingDescription.options.shape.resize !== false) {
-                width -= 2 * box2dSkinWidth;
-                height -= 2 * box2dSkinWidth;
-            }
-            fixture.shape = new Box2D.b2PolygonShape();
-            fixture.shape.SetAsBox(width / 2, height / 2);
+
+            mass =  thingDescription.options.shape.width * thingDescription.options.shape.height * thingDescription.options.shape.density;
+            moment = cp.momentForBox(mass, thingDescription.options.shape.width, thingDescription.options.shape.height)
+
         } else {
             assert(false, "phyzzie: error: unsupported object shape: " + thingDescription.options.shape.type);
         }
 
-        bodyObj = world.CreateBody(body);
-        bodyObj.CreateFixture(fixture);
+        xCoordinate = thingDescription.options.body.position[0];
+        yCoordinate = thingDescription.options.body.position[1];
 
-        thingsByName[thingDescription.id] = [bodyObj, thingDescription.options.shape];
+        if (thingDescription.options.body.isStatic === true) {
+            bodyPosition = cp.vzero
+            shapePosition = cp.v(xCoordinate, yCoordinate);
+
+            body = world.staticBody;
+
+            shapeData = {"x": xCoordinate, "y": yCoordinate};
+
+        } else {
+            bodyPosition = cp.v(xCoordinate, yCoordinate);
+            shapePosition = cp.vzero;
+
+            body = new cp.Body(mass, moment);
+            world.addBody(body);
+
+            body.setPos(bodyPosition);
+            body.setAngle(thingDescription.options.body.angle);
+
+            shapeData = {};
+        }
+
+
+        if (thingDescription.options.shape.type === "circle") {
+            shape = cpCircleShapeNew(body, thingDescription.options.shape.radius, shapePosition);
+
+        } else if (thingDescription.options.shape.type === "box") {
+
+            width = thingDescription.options.shape.width;
+            height = thingDescription.options.shape.height;
+
+            verts = [
+                 width / 2,  height / 2,
+                 width / 2, -height / 2,
+                -width / 2, -height / 2,
+                -width / 2,  height / 2
+            ]
+
+            // needd to allow for the case of a shape attached to global static body away from origin
+            shape = new cp.PolyShape(body, verts, shapePosition);
+        }
+
+        shape.setFriction(thingDescription.options.shape.friction);
+        shape.setElasticity(thingDescription.options.shape.elasticity);
+
+        shape.setLayers(thingDescription.options.shape.layers);
+        shape.group = thingDescription.options.shape.groupIndex;
+
+        thingDescription.options.shape.__shapeData = shapeData;
+
+        world.addShape(shape);
+
+
+        thingsByName[thingDescription.id] = [body, thingDescription.options.shape];
         encapsulatedThingsByName[thingDescription.id] = thingEncapsulator(thingsByName[thingDescription.id]);
     };
 
@@ -200,16 +228,16 @@ makeWorldEditor = function (simOptions) {
         bodyA = thingsByName[jointDescription.bodyA][0];
         bodyB = thingsByName[jointDescription.bodyB][0];
 
-        anchorLocation = new Box2D.b2Vec2(jointDescription.anchor[0], jointDescription.anchor[1]);
-
         if (jointDescription.type === "revolute") {
-            joint = new Box2D.b2RevoluteJointDef();
-            joint.Initialize(bodyA, bodyB, anchorLocation);
+
+            anchorLocation = new cp.v(jointDescription.anchor[0], jointDescription.anchor[1]);
+            joint = new cp.PivotJoint(bodyA, bodyB, anchorLocation);
+
         } else {
             assert(false, "phyzzie: error: unsupported constraint type: " + jointDescription.type);
         }
 
-        world.CreateJoint(joint);
+        world.addConstraint(joint);
     };
 
     // adds things to world accoring to world description
@@ -268,6 +296,8 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
 
     simStepsPerSecond = simStepsPerInteraction * interactionsPerSecond;
 
+    world.setIterations(simOptions.iterationsPerSimStep);
+
     newTicks = 0;
     ticksUntilInteract = 0;
 
@@ -297,8 +327,7 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
                 ticksUntilInteract += simStepsPerInteraction;
             }
 
-            // the Box2D function, not this function being defined
-            world.Step(1 / simStepsPerSecond, iterationsPerSimStep, iterationsPerSimStep);
+            world.step(1 / simStepsPerSecond);
 
             newTicks -= 1;
             ticksUntilInteract -= 1;
@@ -343,17 +372,21 @@ thingEncapsulator = function (thing) {
 
     getPosition = function () {
         var position;
-        position = body.GetPosition();
+        if (body.isStatic()) {
+            position = shape.__shapeData;
+        } else {
+            position = body.getPos();
+        }
         return [position.x, position.y];
     };
     getVelocity = function () {
         var velocity;
-        velocity = body.GetLinearVelocity();
+        velocity = body.getVel();
         return [velocity.x, velocity.y];
     };
     getAngle = function () {
         var angle;
-        angle = body.GetAngle();
+        angle = body.getAngle();
 
         angle = angle % (2 * Math.PI);
         angle = (angle + (2 * Math.PI)) % (2 * Math.PI);
@@ -362,35 +395,34 @@ thingEncapsulator = function (thing) {
     };
     getAngularVelocity = function () {
         var angularVelocity;
-        angularVelocity = body.GetAngularVelocity();
+        angularVelocity = body.getAngVel();
         return angularVelocity;
     };
     getShape = function () {
         return clone(shape);
     };
-    push = function (impulse, impulseLocation) {
+    push = function (impulse, impulseRadius) {
         var impulseVector, impulseLocationVector;
 
-        assert(Array.isArray(impulse), "phyzzie: impulse: (" + impulse + ") must be a valid coordinate array or undefined.");
-
+        assert(Array.isArray(impulse), "phyzzie: impulse: (" + impulse + ") must be a valid coordinate array.");
         assert(typeof impulse[0] === "number" && !isNaN(impulse[0]), "phyzzie: impulse: (" + impulse + ") is not a valid coordinate array.");
         assert(typeof impulse[1] === "number" && !isNaN(impulse[1]), "phyzzie: impulse: (" + impulse + ") is not a valid coordinate array.");
 
-        if (impulseLocation !== undefined) {
+        if (impulseRadius !== undefined) {
 
-            assert(Array.isArray(impulseLocation), "phyzzie: impulseLocation (" + impulseLocation + ") must be a valid coordinate array or undefined.");
+            assert(Array.isArray(impulseRadius), "phyzzie: impulseRadius: (" + impulseRadius + ") must be a valid coordinate array or undefined.");
+            assert(typeof impulseRadius[0] === "number" && !isNaN(impulseRadius[0]), "phyzzie: impulseRadius: (" + impulseRadius + ") is not a valid coordinate array.");
+            assert(typeof impulseRadius[1] === "number" && !isNaN(impulseRadius[1]), "phyzzie: impulseRadius: (" + impulseRadius + ") is not a valid coordinate array.");
 
-            assert(typeof impulseLocation[0] === "number" && !isNaN(impulseLocation[0]), "phyzzie: impulseLocation (" + impulseLocation + ") is not a valid coordinate array.");
-            assert(typeof impulseLocation[1] === "number" && !isNaN(impulseLocation[1]), "phyzzie: impulseLocation (" + impulseLocation + ") is not a valid coordinate array.");
+            impulseRadius = cp.v(impulseRadius[0], impulseRadius[1]);
 
         } else {
-            impulseLocation = [0, 0];
+            impulseRadius = cp.v(0, 0);
         }
 
-        impulseVector = new Box2D.b2Vec2(impulse[0], impulse[1]);
-        impulseLocationVector = body.GetWorldPoint(new Box2D.b2Vec2(impulseLocation[0], impulseLocation[1]));
+        impulseVector = new cp.v(impulse[0], impulse[1]);
 
-        body.ApplyImpulse(impulseVector, impulseLocationVector);
+        body.applyImpulse(impulseVector, impulseRadius);
     };
 
     that = {};
