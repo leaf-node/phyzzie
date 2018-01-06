@@ -286,12 +286,12 @@ worldEncapsulator = function (world, encapsulatedThingsByName, simOptions) {
     simStepsPerInteraction  = simOptions.simStepsPerInteraction;
     iterationsPerSimStep    = simOptions.iterationsPerSimStep;
 
-    assert(typeof interactionsPerSecond === "number" && !isNaN(interactionsPerSecond),
-            "phyzzie: error: invalid options: interactionsPerSecond must be a number.");
-    assert(typeof simStepsPerInteraction === "number" && !isNaN(simStepsPerInteraction),
-            "phyzzie: error: invalid options: simStepsPerInteraction must be a number.");
-    assert(typeof iterationsPerSimStep === "number" && !isNaN(iterationsPerSimStep),
-            "phyzzie: error: invalid options: iterationsPerSimStep must be a number.");
+    assert(typeof interactionsPerSecond === "number" && !isNaN(interactionsPerSecond) && interactionsPerSecond % 1 === 0,
+            "phyzzie: error: invalid options: interactionsPerSecond must be an integer.");
+    assert(typeof simStepsPerInteraction === "number" && !isNaN(simStepsPerInteraction) && simStepsPerInteraction % 1 === 0,
+            "phyzzie: error: invalid options: simStepsPerInteraction must be an integer.");
+    assert(typeof iterationsPerSimStep === "number" && !isNaN(iterationsPerSimStep) && iterationsPerSimStep % 1 === 0,
+            "phyzzie: error: invalid options: iterationsPerSimStep must be an integer.");
 
 
     simStepsPerSecond = simStepsPerInteraction * interactionsPerSecond;
