@@ -11,6 +11,9 @@ nature.
 
 ## Use
 
+You may be interested in my [double inverted pendulum
+demos](https://gitlab.com/sudoman/swirlnet-demos), which use phyzzie.
+
     doSimulation = function () {
 
         things = JSON.stringify(require('./examples/things.json'));
