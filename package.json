@@ -1,6 +1,6 @@
 {
   "name": "phyzzie",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Console and browser based physical 2D world simulation framework",
   "url": "https://gitlab.com/sudoman/phyzzie/issues",
   "repository": "gitlab:sudoman/phyzzie",
