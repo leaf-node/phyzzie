@@ -54,6 +54,7 @@ setupGraphics = function (things, unparsedColors, options) {
             "phyzzie: error: renderOptions must be an object or undefined.");
 
     renderer = PIXI.autoDetectRenderer(width, height, renderOptions);
+    renderer.plugins.interaction.autoPreventDefault = false;
     document.getElementById(targetDiv).appendChild(renderer.view);
 
     colors = JSON.parse(unparsedColors).colors;
