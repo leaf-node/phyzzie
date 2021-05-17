@@ -12,7 +12,7 @@ nature.
 ## Use
 
 You may be interested in my [double inverted pendulum
-demos](https://gitlab.com/sudoman/swirlnet-demos), which use phyzzie.
+demos](https://github.com/leaf-node/swirlnet-demos), which use phyzzie.
 
     doSimulation = function () {
 
